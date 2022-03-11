@@ -69,13 +69,16 @@ instance Ord (SumTypeByTypeInfo lang) where
   compare (SumTypeByTypeInfo (SumType ty1 _ _)) (SumTypeByTypeInfo (SumType ty2 _ _)) =
     compare ty1 ty2
 
+data UriType = Relative | Absolute
+
 data Settings = Settings
   { _apiModuleName :: Text,
     _globalHeaders :: Set ParamName,
     _globalQueryParams :: Set ParamName,
     _psBridgeSwitches :: Switches.Switch,
     _psTypes :: Set (SumTypeByTypeInfo 'Haskell),
-    _standardImports :: ImportLines
+    _standardImports :: ImportLines,
+    _uriType :: UriType
   }
 
 makeLenses ''Settings
@@ -94,15 +97,19 @@ defaultSettings =
             ImportLine "Data.Argonaut" (Set.fromList ["Json", "JsonDecodeError"]),
             ImportLine "Data.Argonaut.Decode.Aeson" $ Set.fromList ["(</$\\>)", "(</*\\>)", "(</\\>)"],
             ImportLine "Data.Argonaut.Encode.Aeson" $ Set.fromList ["(>$<)", "(>/\\<)"],
-            ImportLine "Data.Array" (Set.fromList ["catMaybes"]),
+            ImportLine "Data.Array" (Set.fromList ["catMaybes", "uncons"]),
             ImportLine "Data.Either" (Set.fromList ["Either(..)"]),
             ImportLine "Data.Foldable" (Set.fromList ["fold"]),
             ImportLine "Data.HTTP.Method" (Set.fromList ["Method(..)"]),
             ImportLine "Data.Maybe" (Set.fromList ["Maybe(..)"]),
             ImportLine "Data.Tuple" (Set.fromList ["Tuple"]),
             ImportLine "Servant.PureScript" (Set.fromList ["AjaxError", "class MonadAjax", "flagQueryPairs", "paramListQueryPairs", "paramQueryPairs", "request", "toHeader", "toPathSegment"]),
-            ImportLine "URI" (Set.fromList ["RelativePart(..)", "RelativeRef(..)"])
-          ]
+            ImportLine "URI" (Set.fromList ["AbsoluteURI(..)", "HierarchicalPart(..)", "RelativePart(..)", "RelativeRef(..)"]),
+            ImportLine "URI.AbsoluteURI" (Set.fromList ["PathAbsolute(..)"]),
+            ImportLine "URI.Path.Segment" (Set.fromList ["segmentFromString", "segmentNZFromString"]),
+            ImportLine "URI.Scheme" (Set.fromList ["unsafeFromString"])
+          ],
+      _uriType = Relative
     }
 
 -- | Add a header that will not be added to any client function signatures.

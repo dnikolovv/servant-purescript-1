@@ -91,7 +91,7 @@ genFunction settings req =
         [ mkPsType "MonadAjax" [psApi, mkPsType "m" []] ]
       signature = genSignature fnName ["m"] constraints pTypes returnType
       fbody = hang 2
-        $ genFnHead fnName pNames </> genFnBody method headers body pathSegments queryString returnType
+        $ genFnHead fnName pNames </> genFnBody (settings ^. uriType) method headers body pathSegments queryString returnType
    in signature </> fbody
 
 genSignature :: Text -> [Text] -> [PSType] -> [PSType] -> Maybe PSType -> Doc
@@ -125,13 +125,12 @@ genFnHead fnName params = fName <+> align (docIntercalate softline docParams <+>
     docParams = map psVar params
     fName = strictText fnName
 
-genFnBody :: Method -> [Arg PSType] -> Maybe PSType -> [Segment PSType] -> [QueryArg PSType] -> Maybe PSType -> Doc
-genFnBody method headers body args queryString returnType = docIntercalate line $ hang 2 <$>
+genFnBody :: UriType -> Method -> [Arg PSType] -> Maybe PSType -> [Segment PSType] -> [QueryArg PSType] -> Maybe PSType -> Doc
+genFnBody typeOfUrl method headers body args queryString returnType = docIntercalate line $ hang 2 <$>
   [ strictText "request Api req"
   , strictText "where"
   , strictText "req = { method, uri, headers, content, encode, decode }"
   , strictText "method = Left" <+> methodDoc
-  , strictText "uri = RelativeRef relativePart query Nothing"
   , strictText "headers = catMaybes" </> niceList headersDoc
   , strictText case body of
       Nothing -> "content = Nothing"
@@ -142,8 +141,22 @@ genFnBody method headers body args queryString returnType = docIntercalate line 
   , strictText "decoder =" <+> decoder
   , strictText "relativePart = RelativePartNoAuth $ Just" </> niceList segments
   , strictText "query =" <+> query
-  ]
+  ] <> uriParts
   where
+    uriParts = case typeOfUrl of
+      Relative -> [
+        strictText "uri = RelativeRef relativePart query Nothing",
+        strictText "relativePart = RelativePartNoAuth $ Just" </> niceList segments
+        ]
+      Absolute -> [
+        strictText "uri = Absolute $ AbsoluteURI (unsafeFromString \"http\") hierPart query",
+        strictText "hierPart = HierarchicalPartNoAuth hierPartPath",
+        strictText "hierPartPath = " <>
+          case segments of
+            [] -> strictText "Nothing"
+            (s:ss) -> strictText "Just $ Left $ PathAbsolute $ Just (segmentNZFromString (NonEmptyString " </> s </> ") /\\ map segmentFromString " </> niceList ss </> ")"
+        ]
+
     methodDoc = method ^. to T.decodeUtf8 . to toUpper . to strictText
     headersDoc = header <$> headers
     header arg = docIntercalate space
