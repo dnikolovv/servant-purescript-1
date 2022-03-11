@@ -34,6 +34,8 @@ module Servant.PureScript
     toHeader,
     toPathSegment,
     toQueryValue,
+    uriType,
+    UriType (..)
   )
 where
 

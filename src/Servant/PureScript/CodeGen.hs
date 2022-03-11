@@ -145,7 +145,7 @@ genFnBody typeOfUrl method headers body args queryString returnType = docInterca
   where
     uriParts = case typeOfUrl of
       Relative -> [
-        strictText "uri = RelativeRef relativePart query Nothing",
+        strictText "uri = Relative $ RelativeRef relativePart query Nothing",
         strictText "relativePart = RelativePartNoAuth $ Just" </> niceList segments
         ]
       Absolute -> [
