@@ -139,7 +139,6 @@ genFnBody typeOfUrl method headers body args queryString returnType = docInterca
   , strictText "decode = D.decode decoder"
   , strictText "encoder =" <+> encoder
   , strictText "decoder =" <+> decoder
-  , strictText "relativePart = RelativePartNoAuth $ Just" </> niceList segments
   , strictText "query =" <+> query
   ] <> uriParts
   where
