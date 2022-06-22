@@ -27,7 +27,9 @@ module Servant.PureScript
     jsonParseUrlPiece,
     jsonToHeader,
     jsonToUrlPiece,
+    mkPackageName,
     languageBridge,
+    packageName,
     psBridgeSwitches,
     psTypes,
     standardImports,
@@ -89,7 +91,7 @@ generateWithSettings ::
   IO ()
 generateWithSettings opts@Settings {..} root pBr pAPI = do
   T.putStrLn "\nCreating your PureScript Types..."
-  writePSTypesWith _psBridgeSwitches root bridge
+  writePSTypesWith _psBridgeSwitches _packageName root bridge
     $ interceptType . getSumTypeByTypeInfo
     <$> Set.toList _psTypes
   T.putStrLn "\nSuccessfully created your PureScript types!"
