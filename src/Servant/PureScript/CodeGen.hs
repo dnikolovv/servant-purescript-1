@@ -18,7 +18,7 @@ import qualified Data.Set as Set
 import Data.Text (Text, toUpper)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Language.PureScript.Bridge (ImportLine (..), ImportLines, PSType, TypeInfo (..), importLineToText, mergeImportLines, renderText, typeInfoToDecl, typeModule, typeToDecode, typeToEncode, typesToImportLines, flattenTypeInfo)
+import Language.PureScript.Bridge (PackageName(..), ImportLine (..), ImportLines, PSType, TypeInfo (..), importLineToText, mergeImportLines, renderText, typeInfoToDecl, typeModule, typeToDecode, typeToEncode, typesToImportLines, flattenTypeInfo)
 import Language.PureScript.Bridge.PSTypes (psUnit)
 import Servant.Foreign
 import Servant.PureScript.Internal
@@ -33,9 +33,12 @@ genModule :: Settings -> [Req PSType] -> Doc
 genModule settings@Settings{..} reqs =
   let apiImports = reqsToImportLines settings reqs
       imports = mergeImportLines _standardImports apiImports
+      apiModuleName' = fromMaybe _apiModuleName do
+        PackageName pk <- _packageName
+        pure $ pk <> "." <> _apiModuleName
    in docIntercalate
         (line <> line)
-        [ genModuleHeader _apiModuleName imports,
+        [ genModuleHeader apiModuleName' imports,
           strictText "data Api = Api",
           docIntercalate
             (line <> line)
