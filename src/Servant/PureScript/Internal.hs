@@ -73,6 +73,8 @@ data UriType = Relative | Absolute
 
 data Settings = Settings
   { _apiModuleName :: Text,
+    -- | You can assign package namespace for generated modules
+    _packageName :: Maybe PackageName,
     _globalHeaders :: Set ParamName,
     _globalQueryParams :: Set ParamName,
     _psBridgeSwitches :: Switches.Switch,
@@ -87,6 +89,7 @@ defaultSettings :: Settings
 defaultSettings =
   Settings
     { _apiModuleName = "ServerAPI",
+      _packageName = Nothing,
       _globalHeaders = Set.empty,
       _globalQueryParams = Set.empty,
       _psBridgeSwitches = mempty,
